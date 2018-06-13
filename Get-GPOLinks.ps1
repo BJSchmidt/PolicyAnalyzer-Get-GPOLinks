@@ -174,9 +174,11 @@ if ($InputFile -like "") {
     $InputFile = Get-FileName($PSScriptRoot)
 }
 
-if ($OutputFile -like "") {
+if ($OutputFile -like "" -or ((-not($OutputFile -like "*.xlsx")) -and (-not($OutputFile -like "*.XLSX")))) {
     #Prompt for OutputFile:
-    $OutputFile = Read-Host -Prompt "Enter OutputFile path: Ex '.\outputFile.xlsx'"
+    While(-not($OutputFile -like "*.xlsx") -and (-not($OutputFile -like "*.XLSX"))){
+        $OutputFile = Read-Host -Prompt "OutputFile (Path and XLSX extension) Ex '.\GPOLinksReport.xlsx':" 
+    }
 }
 
 Get-GPOLinks -TargetDomain $TargetDomain -InputFile $inputFile -outputFile $OutputFile

@@ -5,7 +5,7 @@ Parameters:
 
 Process:
     Import excel document
-    Parse out GPO Names from the "baudette-mn_PolicyRules %newline% GPO" field (column K)
+    Parse out GPO Names from the "%domain%_PolicyRules %newline% GPO" field (column K)
     Get XML Report for all the gpos, once.
     Parse XML for Name, Links, Enforced, GUID
     Export to CSV.

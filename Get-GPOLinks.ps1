@@ -1,7 +1,25 @@
 <#
-Parameters:
-    Policy Analyzer Exported Excel File.
-    TargetDomain
+    .SYNOPSIS
+    Gets report of GPO links for comparison against output from Microsoft Policy Analyzer
+
+    .DESCRIPTION
+    Gets report of GPO links for comparison against output from Microsoft Policy Analyzer
+    Run Policy Analyzer and export results as XLSX.
+    Use that for input into this script.
+    A report with GPO Links will be written to OutputFile.
+    This makes it possible to quickly see where the GPOs from Policy Analyzer are linked
+    and to quickly compare their scopes.
+
+    .EXAMPLE
+    Get-GPOLinks.ps1 -InputFile "PolicyAnalyzerExport.xlsx" -OutputFile "PolicyAnalyzerGPOLinks.xlsx"
+
+    .TODO
+    Parameterize script
+    Allow Pipeline input for InputFile.
+
+#>
+
+<#
 
 Process:
     Import excel document
@@ -13,9 +31,12 @@ Process:
 
 #requires -module ImportExcel
 
-$TargetDomain = ""
-$InputFile = ""
-$OutputFile = ".\test.xlsx"
+param (
+        # Target Domain to get GPO Reports from
+        [Alias("Domain")][string]$TargetDomain,
+        [Parameter(ValueFromPipeline=$true)][Alias("Input")][string]$InputFile,
+        [Alias("Output")][string]$OutputFile
+)
 
 function Get-FileName($initialDirectory) {
     $initialDirectory = $PSscriptroot
@@ -99,11 +120,15 @@ function Get-GPOLinks() {
                 $gpoXMLArray.GPO | Where-Object {$_.Name -eq $gpo} |
                 Select-Object -Property @{Name="Analyzer Source Row"; Expression = {$currRow}},
                                                 Name,
-                                        @{Name="Enabled"; Expression = {[string]::join("`n",($_.LinksTo.Enabled))}},
-                                        @{Name="Enforced"; Expression = {[string]::join("`n",($_.LinksTo.NoOverride))}},
-                                        @{Name="GUID"; Expression = {$_.Identifier.Identifier."#Text" }},
-                                        # @{Name="currRow"; Expression = {$currRow % 2}},
-                                        @{Name="Links (Expand row height to see multiline cells) "; Expression = {[string]::join("`n",($_.LinksTo.SOMPath))}}
+                                        @{Name="Enabled"; Expression = {[string]::join("`r`n",($_.LinksTo.Enabled))}},
+                                        @{Name="Enforced"; Expression = {[string]::join("`r`n",($_.LinksTo.NoOverride))}},
+                                        @{Name="GUID"; Expression = {$_.Identifier.Identifier."#Text"}},
+                                        @{Name="Policy Setting Name"; Expression = {$row | Select-Object -ExpandProperty "Policy Setting Name"}},
+                                        @{Name="Policy Setting"; Expression = {$row | Select-Object -ExpandProperty "Policy Setting"}},
+                                        # @{Name="Policy Rules"; Expression = {$row | Select-Object -ExpandProperty "*_PolicyRules"}},
+                                        # @{Name="Policy Rules Option"; Expression = {$row | Select-Object -ExpandProperty "*_PolicyRules*Option"}},
+                                        @{Name="Links (Expand row height to see multiline cells) "; Expression = {[string]::join("`r`n",($_.LinksTo.SOMPath))}}
+                                        # @{Name="Links (Expand row height to see multiline cells)"; Expression = {$_.LinksTo.SOMPath}}
             }
             $currRow++        
         }
@@ -118,7 +143,7 @@ function Get-GPOLinks() {
         }
 
         #Export Results:
-        $results | Export-Excel $OutputFile -WorkSheetname "GPO Links" -AutoSize -CellStyleSB {
+        $results | Export-Excel $OutputFile -WorkSheetname "GPO Links" -CellStyleSB {
             param (
                 $workSheet,
                 $totalRows,

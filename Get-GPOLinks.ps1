@@ -177,7 +177,7 @@ if ($InputFile -like "") {
 if ($OutputFile -like "" -or ((-not($OutputFile -like "*.xlsx")) -and (-not($OutputFile -like "*.XLSX")))) {
     #Prompt for OutputFile:
     While(-not($OutputFile -like "*.xlsx") -and (-not($OutputFile -like "*.XLSX"))){
-        $OutputFile = Read-Host -Prompt "OutputFile (Path and XLSX extension) Ex '.\GPOLinksReport.xlsx':" 
+        $OutputFile = Read-Host -Prompt "OutputFile (Path and XLSX extension) Ex '.\GPOLinksReport.xlsx'" 
     }
 }
 
